@@ -12,7 +12,7 @@ async function deploy(): Promise<void> {
       getInput('public-source-path'),
       getInput('dest-s3-bucket', {required: true}),
       getInput('dest-s3-path'),
-      specificFiles,
+      specificFiles.split(','),
       ['*.html', 'page-data/*.json', 'sw.js'],
       getIntInput('browser-cache-duration'),
       getIntInput('cdn-cache-duration'));

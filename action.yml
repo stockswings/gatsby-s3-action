@@ -10,6 +10,8 @@ inputs:
     required: true
   dest-s3-path:
     description: 'Destination S3 Path'
+  specific-files-only:
+    description: 'If specified, will only deploy these files'
   sync-delete:
     description: "Boolean, delete files on S3 not present in build (default: true)"
     default: 'true'

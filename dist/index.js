@@ -978,6 +978,13 @@ const input_1 = __webpack_require__(518);
 const s3_1 = __webpack_require__(627);
 const cloudfront_1 = __webpack_require__(471);
 async function deploy() {
+    // Check if we got a list of specific files.
+    const specificFiles = core_1.getInput('specific-files-only');
+    if (specificFiles) {
+        await s3_1.syncSpecificFiles(core_1.getInput('public-source-path'), core_1.getInput('dest-s3-bucket', { required: true }), core_1.getInput('dest-s3-path'), specificFiles.split(','), ['*.html', 'page-data/*.json', 'sw.js'], input_1.getIntInput('browser-cache-duration'), input_1.getIntInput('cdn-cache-duration'));
+        return;
+    }
+    // If we didn't get specific files, then deploy everything
     await s3_1.syncToS3Bucket({
         localSource: core_1.getInput('public-source-path'),
         s3Bucket: core_1.getInput('dest-s3-bucket', { required: true }),
@@ -1408,7 +1415,7 @@ module.exports = require("path");
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.syncToS3Bucket = void 0;
+exports.syncSpecificFiles = exports.syncToS3Bucket = void 0;
 const exec_1 = __webpack_require__(986);
 async function syncToS3Bucket({ localSource, s3Bucket, s3Path, syncDelete, filesNotToBrowserCache, browserCacheDuration, cdnCacheDuration }) {
     const destination = makeS3Destination(s3Bucket, s3Path);
@@ -1437,6 +1444,19 @@ async function setNoBrowserCaching(destination, filePatterns, cdnCacheDuration) 
         `--cache-control "${noBrowserCachingHeader}"`
     ].join(' '));
 }
+async function syncSpecificFiles(source, s3Bucket, s3Path, filePatterns, filesNotToBrowserCache, browserCacheDuration, cdnCacheDuration) {
+    const destination = makeS3Destination(s3Bucket, s3Path);
+    const browserCachingHeader = getCacheControlHeader(browserCacheDuration, cdnCacheDuration);
+    await exec_1.exec([
+        `aws s3 cp ${source} ${destination}`,
+        `--recursive`,
+        `--exclude "*"`,
+        filePatterns.map(pattern => `--include "${pattern}"`).join(' '),
+        `--cache-control "${browserCachingHeader}"`
+    ].join(' '));
+    await setNoBrowserCaching(destination, filesNotToBrowserCache, cdnCacheDuration);
+}
+exports.syncSpecificFiles = syncSpecificFiles;
 function makeS3Destination(bucket, path) {
     if (path) {
         return `s3://${bucket}/${removeLeadingSlash(path)}`;
