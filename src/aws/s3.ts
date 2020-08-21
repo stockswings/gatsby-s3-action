@@ -78,6 +78,38 @@ async function setNoBrowserCaching(
   )
 }
 
+export async function syncSpecificFiles(
+  source: string,
+  s3Bucket: string,
+  s3Path: string,
+  filePatterns: string[],
+  filesNotToBrowserCache: string[],
+  browserCacheDuration: number,
+  cdnCacheDuration: number
+): Promise<void> {
+  const destination = makeS3Destination(s3Bucket, s3Path);
+  const browserCachingHeader = getCacheControlHeader(
+    browserCacheDuration,
+    cdnCacheDuration
+  );
+
+  await exec(
+    [
+      `aws s3 cp ${source} ${destination}`,
+      `--recursive`,
+      `--exclude "*"`,
+      filePatterns.map(pattern => `--include "${pattern}"`).join(' '),
+      `--cache-control "${browserCachingHeader}"`
+    ].join(' ')
+  );
+
+  await setNoBrowserCaching(
+    destination,
+    filesNotToBrowserCache,
+    cdnCacheDuration
+  );
+}
+
 function makeS3Destination(bucket: string, path?: string): string {
   if (path) {
     return `s3://${bucket}/${removeLeadingSlash(path)}`

@@ -1,9 +1,26 @@
 import {getInput, setFailed} from '@actions/core'
 import {getIntInput, getBooleanInput} from './input'
-import {syncToS3Bucket} from './aws/s3'
+import {syncToS3Bucket, syncSpecificFiles} from './aws/s3'
 import {invalidateCloudfront} from './aws/cloudfront'
 
 async function deploy(): Promise<void> {
+
+  // Check if we got a list of specific files.
+  const specificFiles = getInput('specific-files-only');
+  if (specificFiles) {
+    await syncSpecificFiles(
+      getInput('public-source-path'),
+      getInput('dest-s3-bucket', {required: true}),
+      getInput('dest-s3-path'),
+      specificFiles,
+      ['*.html', 'page-data/*.json', 'sw.js'],
+      getIntInput('browser-cache-duration'),
+      getIntInput('cdn-cache-duration'));
+    return;
+  }
+
+
+  // If we didn't get specific files, then deploy everything
   await syncToS3Bucket({
     localSource: getInput('public-source-path'),
     s3Bucket: getInput('dest-s3-bucket', {required: true}),
