@@ -105,7 +105,7 @@ export async function syncSpecificFiles(
 
   await setNoBrowserCaching(
     destination,
-    filesNotToBrowserCache,
+    filePatterns,
     cdnCacheDuration
   );
 }
