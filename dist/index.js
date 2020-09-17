@@ -981,7 +981,7 @@ async function deploy() {
     // Check if we got a list of specific files.
     const specificFiles = core_1.getInput('specific-files-only');
     if (specificFiles) {
-        await s3_1.syncSpecificFiles(core_1.getInput('public-source-path'), core_1.getInput('dest-s3-bucket', { required: true }), core_1.getInput('dest-s3-path'), specificFiles.split(','), ['*.html', 'page-data/*.json', 'sw.js'], input_1.getIntInput('browser-cache-duration'), input_1.getIntInput('cdn-cache-duration'));
+        await s3_1.syncSpecificFiles(core_1.getInput('public-source-path'), core_1.getInput('dest-s3-bucket', { required: true }), core_1.getInput('dest-s3-path'), specificFiles.split(','), input_1.getIntInput('browser-cache-duration'), input_1.getIntInput('cdn-cache-duration'));
         return;
     }
     // If we didn't get specific files, then deploy everything
@@ -1444,7 +1444,7 @@ async function setNoBrowserCaching(destination, filePatterns, cdnCacheDuration) 
         `--cache-control "${noBrowserCachingHeader}"`
     ].join(' '));
 }
-async function syncSpecificFiles(source, s3Bucket, s3Path, filePatterns, filesNotToBrowserCache, browserCacheDuration, cdnCacheDuration) {
+async function syncSpecificFiles(source, s3Bucket, s3Path, filePatterns, browserCacheDuration, cdnCacheDuration) {
     const destination = makeS3Destination(s3Bucket, s3Path);
     const browserCachingHeader = getCacheControlHeader(browserCacheDuration, cdnCacheDuration);
     await exec_1.exec([
@@ -1454,7 +1454,7 @@ async function syncSpecificFiles(source, s3Bucket, s3Path, filePatterns, filesNo
         filePatterns.map(pattern => `--include "${pattern}"`).join(' '),
         `--cache-control "${browserCachingHeader}"`
     ].join(' '));
-    await setNoBrowserCaching(destination, filesNotToBrowserCache, cdnCacheDuration);
+    await setNoBrowserCaching(destination, filePatterns, cdnCacheDuration);
 }
 exports.syncSpecificFiles = syncSpecificFiles;
 function makeS3Destination(bucket, path) {

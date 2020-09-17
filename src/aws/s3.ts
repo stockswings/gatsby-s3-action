@@ -83,15 +83,14 @@ export async function syncSpecificFiles(
   s3Bucket: string,
   s3Path: string,
   filePatterns: string[],
-  filesNotToBrowserCache: string[],
   browserCacheDuration: number,
   cdnCacheDuration: number
 ): Promise<void> {
-  const destination = makeS3Destination(s3Bucket, s3Path);
+  const destination = makeS3Destination(s3Bucket, s3Path)
   const browserCachingHeader = getCacheControlHeader(
     browserCacheDuration,
     cdnCacheDuration
-  );
+  )
 
   await exec(
     [
@@ -101,13 +100,9 @@ export async function syncSpecificFiles(
       filePatterns.map(pattern => `--include "${pattern}"`).join(' '),
       `--cache-control "${browserCachingHeader}"`
     ].join(' ')
-  );
+  )
 
-  await setNoBrowserCaching(
-    destination,
-    filePatterns,
-    cdnCacheDuration
-  );
+  await setNoBrowserCaching(destination, filePatterns, cdnCacheDuration)
 }
 
 function makeS3Destination(bucket: string, path?: string): string {

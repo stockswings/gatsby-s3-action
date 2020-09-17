@@ -4,21 +4,19 @@ import {syncToS3Bucket, syncSpecificFiles} from './aws/s3'
 import {invalidateCloudfront} from './aws/cloudfront'
 
 async function deploy(): Promise<void> {
-
   // Check if we got a list of specific files.
-  const specificFiles = getInput('specific-files-only');
+  const specificFiles = getInput('specific-files-only')
   if (specificFiles) {
     await syncSpecificFiles(
       getInput('public-source-path'),
       getInput('dest-s3-bucket', {required: true}),
       getInput('dest-s3-path'),
       specificFiles.split(','),
-      ['*.html', 'page-data/*.json', 'sw.js'],
       getIntInput('browser-cache-duration'),
-      getIntInput('cdn-cache-duration'));
-    return;
+      getIntInput('cdn-cache-duration')
+    )
+    return
   }
-
 
   // If we didn't get specific files, then deploy everything
   await syncToS3Bucket({
